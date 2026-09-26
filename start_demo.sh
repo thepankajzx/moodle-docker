@@ -23,6 +23,15 @@ else
     git clone --branch MOODLE_405_STABLE --depth 1 https://github.com/moodle/moodle.git "$MOODLE_DOCKER_WWWROOT"
 fi
 
+# 2. Inject local_webhookengine plugin
+if [ -f "${WORKSPACE_DIR}/local_webhookengine.zip" ]; then
+    echo "ðŸ”Œ Injecting local_webhookengine Lite plugin..."
+    mkdir -p "$MOODLE_DOCKER_WWWROOT/local/webhookengine"
+    unzip -q -o "${WORKSPACE_DIR}/local_webhookengine.zip" -d /tmp/plugin_extract
+    cp -r /tmp/plugin_extract/webhookengine/* "$MOODLE_DOCKER_WWWROOT/local/webhookengine/" 2>/dev/null || cp -r /tmp/plugin_extract/* "$MOODLE_DOCKER_WWWROOT/local/webhookengine/" 2>/dev/null || true
+    rm -rf /tmp/plugin_extract
+fi
+
 echo "âš™ï¸ Configuring Docker Moodle..."
 cp config.docker-template.php "$MOODLE_DOCKER_WWWROOT/config.php"
 
@@ -51,12 +60,16 @@ bin/moodle-docker-compose exec -T webserver php admin/cli/install_database.php \
   --adminpass=Admin@1234 \
   --adminemail=admin@demo.com
 
+echo "ðŸ”„ Activating local_webhookengine plugin..."
+bin/moodle-docker-compose exec -T webserver php admin/cli/upgrade.php --non-interactive || true
+
 echo "ðŸ“š Generating realistic Demo Courses and Users..."
 bin/moodle-docker-compose exec -T webserver php admin/tool/generator/cli/maketestcourse.php --shortname="DEMO101" --size="S" || true
 
 echo "=================================================="
-echo "ðŸŽ‰ MOODLE 4.5 LTS IS FULLY INSTALLED & READY!"
+echo "ðŸŽ‰ MOODLE 4.5 LTS + WEBHOOK ENGINE IS READY & LIVE!"
 echo "Login: admin"
 echo "Pass:  Admin@1234"
-echo "Check the PORTS tab (Port 8000) -> Click 'Open in Browser'"
+echo "Go to PORTS tab -> Port 8000 -> Click 'Open in Browser'"
+echo "Direct Plugin: Site admin > Plugins > Local plugins > Event Webhooks"
 echo "=================================================="
