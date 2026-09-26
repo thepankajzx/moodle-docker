@@ -24,7 +24,7 @@ if (getenv('MOODLE_DOCKER_DBTYPE') === 'sqlsrv') {
 if (empty($_SERVER['HTTP_HOST'])) {
     $_SERVER['HTTP_HOST'] = 'localhost';
 }
-if (strpos($_SERVER['HTTP_HOST'], '.gitpod.io') !== false) {
+if (strpos($_SERVER['HTTP_HOST'], '.gitpod.io') !== false || strpos($_SERVER['HTTP_HOST'], '.app.github.dev') !== false || strpos($_SERVER['HTTP_HOST'], '.github.dev') !== false) {
     // Gitpod.io deployment.
     $CFG->wwwroot   = 'https://' . $_SERVER['HTTP_HOST'];
     $CFG->sslproxy = true;
