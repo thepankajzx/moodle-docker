@@ -1,12 +1,15 @@
 #!/bin/bash
 set -e
 
+# Always use directory of this script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR"
+
 echo "=================================================="
 echo "ðŸš€ Starting Official Moodle 4.5 LTS Cloud Demo Server"
 echo "=================================================="
 
-WORKSPACE_DIR="$(pwd)"
-export MOODLE_DOCKER_WWWROOT="${WORKSPACE_DIR}/moodle"
+export MOODLE_DOCKER_WWWROOT="${SCRIPT_DIR}/moodle"
 export MOODLE_DOCKER_DB=mariadb
 export MOODLE_DOCKER_PHP_VERSION=8.2
 export MOODLE_DOCKER_WEB_PORT=8000
@@ -17,17 +20,17 @@ if [ -d "$MOODLE_DOCKER_WWWROOT/.git" ]; then
     cd "$MOODLE_DOCKER_WWWROOT"
     git fetch --depth 1 origin MOODLE_405_STABLE 2>/dev/null || true
     git checkout -f FETCH_HEAD || git checkout -f MOODLE_405_STABLE || true
-    cd "$WORKSPACE_DIR"
+    cd "$SCRIPT_DIR"
 else
     echo "ðŸ“¦ Cloning Moodle 4.5 LTS (MOODLE_405_STABLE)..."
     git clone --branch MOODLE_405_STABLE --depth 1 https://github.com/moodle/moodle.git "$MOODLE_DOCKER_WWWROOT"
 fi
 
 # 2. Inject local_webhookengine plugin
-if [ -f "${WORKSPACE_DIR}/local_webhookengine.zip" ]; then
+if [ -f "${SCRIPT_DIR}/local_webhookengine.zip" ]; then
     echo "ðŸ”Œ Injecting local_webhookengine Lite plugin..."
     mkdir -p "$MOODLE_DOCKER_WWWROOT/local/webhookengine"
-    unzip -q -o "${WORKSPACE_DIR}/local_webhookengine.zip" -d /tmp/plugin_extract
+    unzip -q -o "${SCRIPT_DIR}/local_webhookengine.zip" -d /tmp/plugin_extract
     cp -r /tmp/plugin_extract/webhookengine/* "$MOODLE_DOCKER_WWWROOT/local/webhookengine/" 2>/dev/null || cp -r /tmp/plugin_extract/* "$MOODLE_DOCKER_WWWROOT/local/webhookengine/" 2>/dev/null || true
     rm -rf /tmp/plugin_extract
 fi
@@ -37,7 +40,7 @@ cp config.docker-template.php "$MOODLE_DOCKER_WWWROOT/config.php"
 chmod -R 777 "$MOODLE_DOCKER_WWWROOT"
 
 echo "ðŸ³ Starting Docker containers..."
-bin/moodle-docker-compose up -d
+bin/moodle-docker-compose up -d --force-recreate
 
 echo "â³ Waiting for MariaDB database to be fully initialized..."
 count=0
@@ -71,6 +74,5 @@ echo "=================================================="
 echo "ðŸŽ‰ MOODLE 4.5 LTS + WEBHOOK ENGINE IS READY & LIVE!"
 echo "Login: admin"
 echo "Pass:  Admin@1234"
-echo "Go to PORTS tab -> Port 8000 -> Click 'Open in Browser'"
-echo "Direct Plugin: Site admin > Plugins > Local plugins > Event Webhooks"
+echo "Check Port 8000 -> Open in Browser"
 echo "=================================================="
