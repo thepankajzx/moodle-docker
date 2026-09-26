@@ -1,16 +1,15 @@
 #!/bin/bash
 set -e
 
-# Always use directory of this script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
 echo "=================================================="
-echo "ðŸš€ Starting Official Moodle 4.5 LTS Cloud Demo Server"
+echo "ðŸš€ Starting Official Moodle 4.5 LTS (PostgreSQL Engine)"
 echo "=================================================="
 
 export MOODLE_DOCKER_WWWROOT="${SCRIPT_DIR}/moodle"
-export MOODLE_DOCKER_DB=mariadb
+export MOODLE_DOCKER_DB=pgsql
 export MOODLE_DOCKER_PHP_VERSION=8.2
 export MOODLE_DOCKER_WEB_PORT=8000
 
@@ -39,21 +38,12 @@ echo "âš™ï¸ Configuring Docker Moodle..."
 cp config.docker-template.php "$MOODLE_DOCKER_WWWROOT/config.php"
 chmod -R 777 "$MOODLE_DOCKER_WWWROOT"
 
-echo "ðŸ³ Starting Docker containers..."
-bin/moodle-docker-compose up -d --force-recreate
+echo "ðŸ³ Starting Docker containers (Postgres 17 + Apache PHP 8.2)..."
+bin/moodle-docker-compose down 2>/dev/null || true
+bin/moodle-docker-compose up -d
 
-echo "â³ Waiting for MariaDB database to be fully initialized..."
-count=0
-until bin/moodle-docker-compose exec -T db mariadb-admin ping -h localhost -u moodle -p'm@0dl3ing' --silent 2>/dev/null || bin/moodle-docker-compose exec -T db mysqladmin ping -h localhost -u root -p'm@0dl3ing' --silent 2>/dev/null; do
-    echo "Waiting for DB to accept connections... ($count s)"
-    sleep 3
-    count=$((count+3))
-    if [ $count -ge 60 ]; then
-        echo "Database startup took too long, attempting to proceed..."
-        break
-    fi
-done
-echo "âœ… Database is ready and online!"
+echo "â³ Waiting 10s for PostgreSQL container to be ready..."
+sleep 10
 
 echo "ðŸ› ï¸ Installing Moodle Database (Admin: admin / Admin@1234)..."
 bin/moodle-docker-compose exec -T webserver php admin/cli/install_database.php \
