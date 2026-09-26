@@ -34,6 +34,7 @@ fi
 
 echo "âš™ï¸ Configuring Docker Moodle..."
 cp config.docker-template.php "$MOODLE_DOCKER_WWWROOT/config.php"
+chmod -R 777 "$MOODLE_DOCKER_WWWROOT"
 
 echo "ðŸ³ Starting Docker containers..."
 bin/moodle-docker-compose up -d
