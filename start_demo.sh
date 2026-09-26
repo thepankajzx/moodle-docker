@@ -11,8 +11,8 @@ export MOODLE_DOCKER_DB=mariadb
 export MOODLE_DOCKER_PHP_VERSION=8.2
 
 if [ ! -d "$MOODLE_DOCKER_WWWROOT" ]; then
-    echo "ðŸ“¦ Cloning Moodle 5.0 (master branch)..."
-    git clone --branch master --depth 1 https://github.com/moodle/moodle.git "$MOODLE_DOCKER_WWWROOT"
+    echo "ðŸ“¦ Cloning Moodle 5.0 (main branch)..."
+    git clone --branch main --depth 1 https://github.com/moodle/moodle.git "$MOODLE_DOCKER_WWWROOT"
 fi
 
 echo "âš™ï¸ Configuring Docker Moodle..."
